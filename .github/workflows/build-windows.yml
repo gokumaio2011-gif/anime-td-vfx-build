@@ -5,6 +5,7 @@ on:
   push:
     paths:
       - "project_bundle.b64"
+      - "BUILD_TRIGGER.txt"
       - ".github/workflows/build-windows.yml"
 
 jobs:
