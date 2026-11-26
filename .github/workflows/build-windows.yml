@@ -1,0 +1,49 @@
+name: Build Windows game
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "project_bundle.b64"
+      - ".github/workflows/build-windows.yml"
+
+jobs:
+  export-windows:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Godot 4.4.1 and export templates
+        uses: chickensoft-games/setup-godot@v2
+        with:
+          version: 4.4.1
+          use-dotnet: false
+          include-templates: true
+
+      - name: Unpack game project
+        shell: bash
+        run: |
+          base64 -d project_bundle.b64 > game.zip
+          unzip -q game.zip
+          test -f Anime_TD_VFX_Showcase/project.godot
+
+      - name: Validate project
+        shell: bash
+        run: |
+          godot --headless --editor --path Anime_TD_VFX_Showcase --quit
+
+      - name: Export Windows executable
+        shell: bash
+        run: |
+          mkdir -p Anime_TD_VFX_Showcase/build
+          godot --headless --path Anime_TD_VFX_Showcase --export-release "Windows Desktop" Anime_TD_VFX_Showcase/build/AnimeTowerDefense.exe
+          test -s Anime_TD_VFX_Showcase/build/AnimeTowerDefense.exe
+
+      - name: Upload playable Windows build
+        uses: actions/upload-artifact@v4
+        with:
+          name: AnimeTowerDefense-Windows
+          path: Anime_TD_VFX_Showcase/build/AnimeTowerDefense.exe
+          if-no-files-found: error
+          retention-days: 30
